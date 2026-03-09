@@ -429,7 +429,10 @@ class ModelArtifact(Artifact):
 
     def load(self) -> Model:
         self._ensure_downloaded()
-        dct = torch.load(self.local_path, map_location="cpu")
+        try:
+            dct = torch.load(self.local_path, map_location="cpu", weights_only=False)
+        except TypeError:
+            dct = torch.load(self.local_path, map_location="cpu")
         model = dct["class"](dct["config"])
         model.load_state_dict(dct["state_dict"])
         return model
