@@ -72,6 +72,32 @@ conda env config vars set DCBENCH_CONFIG="$(pwd)/dcbench-config.yaml"
 conda activate dcbench
 ```
 
+### Linking ImageNet from SDBench
+If ImageNet is already managed by SDBench (located in `data/base_dataset/imagenet`), you can link it to `dcbench` to avoid re-downloading. **Execute these commands from the `dcbench/` root directory:**
+
+1. **Ensure the `.dcbench` directory exists:**
+   ```bash
+   mkdir -p .dcbench/datasets
+   ```
+
+2. **Create a symbolic link to the SDBench ImageNet directory:**
+   ```bash
+   # From the dcbench/ directory:
+   ln -s ../../../data/base_dataset/imagenet .dcbench/datasets/imagenet
+   ```
+
+3. **Verify the configuration in `dcbench-config.yaml`:**
+   Ensure `imagenet_dir` points to the relative path:
+   ```yaml
+   imagenet_dir: ./.dcbench/datasets/imagenet
+   ```
+
+### Unlinking ImageNet
+To remove the link (this will not delete the original data in SDBench):
+```bash
+rm .dcbench/datasets/imagenet
+```
+
 
 ## 💡 What is dcbench?
 This benchmark evaluates the steps in your machine learning workflow beyond model training and tuning. This includes feature cleaning, slice discovery, and coreset selection. We call these “data-centric” tasks because they're focused on exploring and manipulating data – not training models. ``dcbench`` supports a growing list of them:
