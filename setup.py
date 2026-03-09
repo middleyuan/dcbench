@@ -34,20 +34,16 @@ REQUIRED = [
     "click>=8.0.0",
     "pyyaml>=5.4",
     "pre-commit",
-    # "pytorch-lightning",
-    "pandas",
-    "numpy>=1.18.0",
-    # "cytoolz",
+    "pandas<=1.4.1",
+    "numpy>=1.18.0,<2.0.0",
     "ujson",
     "jsonlines>=1.2.0",
-    # "torch>=1.8.0",
     "tqdm>=4.49.0",
     "scikit-learn",
-    "meerkat-ml[dev,vision,ml]",
-    # "torchvision>=0.9.0",
-    # "wandb",
-    # "ray[default]",
-    # `"torchxrayvision",`
+    "meerkat-ml[dev,vision,ml]==0.2.5",
+    # "pydantic<2.0.0",
+    # "urllib3<2.0.0",
+    "huggingface-hub>=1.3.0,<2.0.0",
 ]
 EXTRAS = {
     "dev": [
@@ -66,6 +62,7 @@ EXTRAS = {
         "sphinx-autobuild",
         "google-cloud-storage",
         "furo",
+        "html5lib>=1.1",
     ],
 }
 
@@ -160,6 +157,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     # $ setup.py publish support.

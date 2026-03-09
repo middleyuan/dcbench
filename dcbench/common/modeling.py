@@ -8,10 +8,48 @@ import torchvision.transforms as transforms
 from torch.hub import load_state_dict_from_url
 from torchvision.models import DenseNet as _DenseNet
 from torchvision.models import ResNet as _ResNet
-from torchvision.models.densenet import _load_state_dict
-from torchvision.models.densenet import model_urls as densenet_model_urls
+
+try:
+    from torchvision.models.densenet import _load_state_dict
+    from torchvision.models.densenet import model_urls as densenet_model_urls
+except ImportError:
+    from torchvision.models.densenet import (
+        DenseNet121_Weights,
+        DenseNet161_Weights,
+        DenseNet169_Weights,
+        DenseNet201_Weights,
+    )
+
+    densenet_model_urls = {
+        "densenet121": DenseNet121_Weights.IMAGENET1K_V1.url,
+        "densenet161": DenseNet161_Weights.IMAGENET1K_V1.url,
+        "densenet169": DenseNet169_Weights.IMAGENET1K_V1.url,
+        "densenet201": DenseNet201_Weights.IMAGENET1K_V1.url,
+    }
+
+    def _load_state_dict(model, model_url, progress):
+        state_dict = load_state_dict_from_url(model_url, progress=progress)
+        model.load_state_dict(state_dict)
+
+
 from torchvision.models.resnet import BasicBlock, Bottleneck
-from torchvision.models.resnet import model_urls as resnet_model_urls
+
+try:
+    from torchvision.models.resnet import model_urls as resnet_model_urls
+except ImportError:
+    from torchvision.models.resnet import (
+        ResNet18_Weights,
+        ResNet34_Weights,
+        ResNet50_Weights,
+        ResNet101_Weights,
+    )
+
+    resnet_model_urls = {
+        "resnet18": ResNet18_Weights.IMAGENET1K_V1.url,
+        "resnet34": ResNet34_Weights.IMAGENET1K_V1.url,
+        "resnet50": ResNet50_Weights.IMAGENET1K_V1.url,
+        "resnet101": ResNet101_Weights.IMAGENET1K_V1.url,
+    }
 
 
 class Model(pl.LightningModule):
