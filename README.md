@@ -39,6 +39,39 @@ dcbench.tasks
 ```
 To learn more, follow the [walkthrough](https://dcbench.readthedocs.io/en/latest/intro.html#api-walkthrough) in the docs. 
 
+## Install from local
+
+```bash
+conda create -n dcbench python=3.10 -y
+conda activate dcbench
+pip install -e .
+```
+
+### Configuring with YAML
+To change the configuration, you can create a YAML file. For example, to set up a local data directory named `.dcbench` in the current repository:
+
+1. **Create the configuration file:**
+   ```bash
+   cat <<EOF > dcbench-config.yaml
+   local_dir: ./.dcbench
+   public_bucket_name: dcbench
+   hidden_bucket_name: dcbench-hidden
+   celeba_dir: ./.dcbench/datasets/celeba
+   imagenet_dir: ./.dcbench/datasets/imagenet
+   EOF
+   ```
+
+2. **Set the environment variable `DCBENCH_CONFIG` to point to the file:**
+   ```bash
+   export DCBENCH_CONFIG="$(pwd)/dcbench-config.yaml"
+   ```
+
+If you’re using conda, you can permanently set this variable for your environment:
+```bash
+conda env config vars set DCBENCH_CONFIG="$(pwd)/dcbench-config.yaml"
+conda activate dcbench
+```
+
 
 ## 💡 What is dcbench?
 This benchmark evaluates the steps in your machine learning workflow beyond model training and tuning. This includes feature cleaning, slice discovery, and coreset selection. We call these “data-centric” tasks because they're focused on exploring and manipulating data – not training models. ``dcbench`` supports a growing list of them:
