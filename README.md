@@ -52,7 +52,8 @@ To change the configuration, you can create a YAML file. For example, to set up 
 
 1. **Create the configuration file:**
    ```bash
-   cat <<EOF > dcbench-config.yaml
+   mkdir -p .dcbench
+   cat <<EOF > .dcbench/dcbench-config.yaml
    local_dir: ./.dcbench
    public_bucket_name: dcbench
    hidden_bucket_name: dcbench-hidden
@@ -63,14 +64,20 @@ To change the configuration, you can create a YAML file. For example, to set up 
 
 2. **Set the environment variable `DCBENCH_CONFIG` to point to the file:**
    ```bash
-   export DCBENCH_CONFIG="$(pwd)/dcbench-config.yaml"
+   export DCBENCH_CONFIG="$(pwd)/.dcbench/dcbench-config.yaml"
    ```
 
 If you’re using conda, you can permanently set this variable for your environment:
 ```bash
-conda env config vars set DCBENCH_CONFIG="$(pwd)/dcbench-config.yaml"
+conda env config vars set DCBENCH_CONFIG="$(pwd)/.dcbench/dcbench-config.yaml"
 conda activate dcbench
 ```
+
+3. **Verify the configuration:**
+   ```python
+   import dcbench
+   dcbench.config
+   ```
 
 ### Linking ImageNet from SDBench
 If ImageNet is already managed by SDBench (located in `data/base_dataset/imagenet`), you can link it to `dcbench` to avoid re-downloading. **Execute these commands from the `dcbench/` root directory:**
