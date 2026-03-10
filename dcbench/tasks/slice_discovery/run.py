@@ -1,5 +1,16 @@
 
 from __future__ import annotations
+import sys
+from pathlib import Path
+
+# Add the local domino implementation to the path
+# The path is relative to the dcbench root (../../sdbench/postprocessors)
+domino_path = (
+    Path(__file__).resolve().parents[3] / ".." / ".." / "sdbench" / "postprocessors"
+).resolve()
+if str(domino_path) not in sys.path:
+    sys.path.insert(0, str(domino_path))
+
 from contextlib import redirect_stdout
 import dataclasses
 from gettext import dpgettext
@@ -22,6 +33,7 @@ import os
 from domino.utils import unpack_args
 from dcbench import Artifact
 from dcbench import SliceDiscoveryProblem, SliceDiscoverySolution
+from dcbench.common.solution_set import SolutionSet
 import dcbench
 from .metrics import compute_solution_metrics
 
@@ -73,7 +85,8 @@ def run_sdms(
     if num_workers > 0:
         import ray
 
-        ray.init()
+        if not ray.is_initialized():
+            ray.init()
         run_fn = ray.remote(_run_sdms).remote
         embs = ray.put(embs) 
     else:
@@ -117,7 +130,7 @@ def run_sdms(
     # flatten the list of lists 
     metrics = [row for slices in metrics for row in slices]
 
-    path = task.write_solutions(solutions)
+    path = SolutionSet.from_solutions(solutions).local_solutions_path
     metrics_df = pd.DataFrame(metrics)
     metrics_df.to_csv(os.path.join(os.path.dirname(path), "metrics.csv"), index=False)
 

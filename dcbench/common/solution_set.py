@@ -27,11 +27,15 @@ class SolutionSet(RowMixin):
     
     @property
     def local_dir(self):
-        return os.path.join(config.local_dir, self.set_id)
+        return os.path.join(config.local_dir, self.dir)
     
     @property 
     def dir(self):
         return os.path.join(self.task_id, "solution_sets", self.set_id)
+
+    @property
+    def local_solutions_path(self):
+        return os.path.join(self.local_dir, "solutions.yaml")
 
     def _write_solutions(self, containers: List[Solution]):
         ids = []
