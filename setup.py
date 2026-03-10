@@ -40,10 +40,10 @@ REQUIRED = [
     "jsonlines>=1.2.0",
     "tqdm>=4.49.0",
     "scikit-learn",
-    "meerkat-ml[dev,vision,ml]==0.2.5",
+    "meerkat-ml[vision,ml]==0.2.5",
     # "pydantic<2.0.0",
     # "urllib3<2.0.0",
-    "huggingface-hub>=1.3.0,<2.0.0",
+    "huggingface-hub>=0.34.0,<2.0.0",
 ]
 EXTRAS = {
     "dev": [
