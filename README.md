@@ -87,10 +87,14 @@ If ImageNet is already managed by SDBench (located in `data/base_dataset/imagene
    mkdir -p .dcbench/datasets
    ```
 
-2. **Create a symbolic link to the SDBench ImageNet directory:**
+2. **Create a symbolic link to the SDBench ImageNet/CelebA directory:**
    ```bash
    # From the dcbench/ directory:
-   ln -s ../../../data/base_dataset/imagenet .dcbench/datasets/imagenet
+   ln -s ../../../../data/base_dataset/imagenet .dcbench/datasets/imagenet
+   ```
+   or
+   ```bash
+   ln -s ../../../../data/base_dataset/celeba .dcbench/datasets/celeba
    ```
 
 3. **Verify the configuration in `dcbench-config.yaml`:**
@@ -103,6 +107,10 @@ If ImageNet is already managed by SDBench (located in `data/base_dataset/imagene
 To remove the link (this will not delete the original data in SDBench):
 ```bash
 rm .dcbench/datasets/imagenet
+```
+or
+```bash
+rm .dcbench/datasets/celeba
 ```
 
 

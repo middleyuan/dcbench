@@ -1,0 +1,198 @@
+\section{dcbench Framework}
+
+\texttt{dcbench} is a benchmark toolkit designed for data-centric AI tasks. It provides a structured way to define, solve, and evaluate tasks where the focus is on data quality and discovery rather than just model training.
+
+The Slice Discovery task in \texttt{dcbench} aims to identify coherent subgroups of data (slices) where a model performs poorly or behaves unexpectedly.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Category} & \textbf{Data Set} & \textbf{Characteristics} \\ \hline
+\textbf{Correlation} & CelebA & Performance drops driven by wrong correlations of attributes (gender, age). \\ \hline
+\textbf{Rareness} & ImageNet & Low accuracy on infrequent classes. \\ \hline
+\textbf{Label Noise} & ImageNet & Apparent errors caused by mislabeling or class ambiguity. \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Problem Formulation}
+Let $\mathcal{D} = \{x_i, y_i, \hat{y}_i, z_i\}_{i=1}^n$ be a dataset where:
+\begin{itemize}
+    \item $x_i$ is the input (e.g., an image).
+    \item $y_i$ is the ground truth label.
+    \item $\hat{y}_i = f(x_i)$ is the model prediction.
+    \item $z_i$ is a latent representation or embedding (e.g., CLIP embeddings or model activations).
+\end{itemize}
+
+The dataset also contains hidden ground truth slices $\mathcal{S} = \{S_1, S_2, \dots, S_k\}$, where each $S_j \in \{0, 1\}^n$ is a binary indicator vector marking membership in the $j$-th slice.
+
+A Slice Discovery algorithm (Solver) $\mathcal{A}$ must produce a set of predicted slices:
+\[ \hat{\mathcal{S}} = \mathcal{A}(\mathcal{D}) = \{\hat{S}_1, \hat{S}_2, \dots, \hat{S}_m\} \]
+where $\hat{S}_j \in [0, 1]^n$ represents the probability or confidence of each instance belonging to the $j$-th discovered slice.
+
+\subsection{Case Studies}
+
+In \texttt{dcbench}, slice discovery problems are categorized based on the nature of the model's failure. We illustrate the setup using three representative case studies.
+
+\subsubsection{General Setup for Case Studies}
+For each case study, we define:
+\begin{itemize}
+    \item \textbf{Classifier Task}: The primary objective of the model $f$, which produces predictions $\hat{y}_i$ for a target $y_i$.
+    \item \textbf{Ground Truth Slice ($S_j$)}: A known subgroup where the model's accuracy $\mathbb{P}(\hat{y}_i = y_i | i \in S_j)$ is significantly lower than its overall accuracy.
+    \begin{itemize}
+        \item \textit{Example 1 (Correlation Slices)}: CelebA (\texttt{p\_72776}), Target: \texttt{wearing\_lipstick}.
+        \begin{itemize}
+            \item \textbf{Overall Accuracy}: 90.68\%
+            \item \textbf{Slice $S_0$}: \texttt{wearing\_lipstick=0\_young=1} (Young people not wearing lipstick).
+            \item \textbf{Slice $S_0$ Size}: 19.37\% (1205 / 6221)
+            \item \textbf{Slice $S_0$ Accuracy}: 75.93\%
+        \end{itemize}
+        \item \textit{Example 2 (Rareness Slices)}: ImageNet (\texttt{p\_118818}), Target: \texttt{food.n.01}.
+        \begin{itemize}
+            \item \textbf{Overall Accuracy}: 82.38\%
+            \item \textbf{Slice $S_0$}: \texttt{menu.n.02} (Menus appearing in food contexts).
+            \item \textbf{Slice $S_0$ Size}: 1.70\% (103 / 6057)
+            \item \textbf{Slice $S_0$ Accuracy}: 68.93\%
+        \end{itemize}
+        \item \textit{Example 3 (Label Noise Slices)}: ImageNet (\texttt{p\_122446}), Target: \texttt{cat.n.01}.
+        \begin{itemize}
+            \item \textbf{Overall Accuracy}: 83.36\%
+            \item \textbf{Slice $S_0$}: \texttt{cougar.n.01} (Cougars often confused with house cats).
+            \item \textbf{Slice $S_0$ Size}: 4.38\% (263 / 6004)
+            \item \textbf{Slice $S_0$ Accuracy}: 57.03\%
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Slice Discovery Goal}: The objective of the solver $\mathcal{A}$ to identify a predicted slice $\hat{S}_l$ that maximizes the similarity to $S_j$.
+\end{itemize}
+
+
+\subsection{Evaluation Metrics}
+
+The quality of the discovered slices is evaluated by comparing them to the ground truth slices. 
+For each ground truth slice $S_j \in \mathcal{S}$, we identify the best-matching predicted slice 
+$\hat{S}_l \in \hat{\mathcal{S}}$ and compute several metrics.
+
+\noindent\textbf{Precision@k}
+
+\[
+P@k(S_j, \hat{S}_l) 
+= \frac{1}{k} 
+\sum_{i \in \text{top-k}(\hat{S}_l)} \mathbb{I}(i \in S_j)
+\]
+
+Common values are $k = 10$ and $k = 25$.
+
+\noindent\textbf{Mean Problem Score}
+
+The final score for a problem averages the best value for each ground truth slice:
+
+\[
+\text{Score} = \frac{1}{k} 
+\sum_{j=1}^{k} 
+\max_{\hat{S}_l \in \hat{\mathcal{S}}}
+\text{Metric}(S_j, \hat{S}_l)
+\]
+
+\noindent\textbf{Average Precision (AP)}
+
+In the implementation, AP is computed using the slice probability vector 
+$\texttt{slice\_prob}$, not binary predictions.
+
+\begin{verbatim}
+"average_precision": skmetrics.average_precision_score(
+    y_true=slc,
+    y_score=slice_prob
+)
+\end{verbatim}
+
+Given a ground-truth binary indicator $S \in \{0, 1\}^N$ and predicted probabilities $\hat{S} \in [0, 1]^N$, we first sort the
+  $N$ samples by their predicted scores in descending order:
+  \[ \hat{S}{(1)} \ge \hat{S}{(2)} \ge \dots \ge \hat{S}{(n)} \ge \dots \ge \hat{S}{(N)} \]
+
+
+  The AP is then defined as:
+  \[ AP = \sum_{n=1}^{N} (R_n - R_{n-1}) P_n \]
+
+
+  where:
+  \begin{itemize}
+      \item $n$ is the rank index of the samples after sorting by probability.
+      \item $P_n$ and $R_n$ are the precision and recall calculated by setting the classification threshold to the $n$-th highest probability score, $T = \hat{S}_{(n)}$.
+      \item By convention, $R_0 = 0$.
+  \end{itemize}
+
+
+\subsubsection{Case Study: Correlation Slices}
+\noindent\textbf{Example (Correlation Slices)}: CelebA (\texttt{p\_72776}), Target: \texttt{wearing\_lipstick}.
+\begin{itemize}
+    \item \textbf{Overall Accuracy}: 90.68\%
+    \item \textbf{Slice $S_0$}: \texttt{wearing\_lipstick=0\_young=1} (Young people not wearing lipstick).
+    \item \textbf{Slice $S_1$}: \texttt{wearing\_lipstick=1\_young=0} (Non-young people wearing lipstick).
+    \item \textbf{Slice $S_0$ Size}: 19.37\% (1205 / 6221)
+    \item \textbf{Slice $S_1$ Size}: 18.76\% (1167 / 6221)
+    \item \textbf{Slice $S_0$ Accuracy}: 75.93\%
+    \item \textbf{Slice $S_1$ Accuracy}: 98.11\%
+\end{itemize}
+
+In \texttt{dcbench}, the matching between your predicted slices and the ground-truth hidden slices is an all-to-all exhaustive search and the matched slice is picked by maximum average precision.
+
+\noindent\textbf{Evaluation Results}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{lcc}
+\hline
+\textbf{Metric} & \textbf{Slice $S_0$} & \textbf{Slice $S_1$} \\
+\hline
+pred\_slice\_idx    & 0                        & 5 \\
+average precision  & 0.46             & 0.37 \\
+precision-at-10     & 0.6                      & 0.4 \\
+precision-at-25     & 0.56                     & 0.24 \\
+recall              & 0.44                  & 1.00 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.4\textwidth]{discovered_slice_0.png}
+\caption{Discovered Slice 0 (Size: 1260) for CelebA (\texttt{p\_72776}). Example instance (ID: 143706.jpg) has target 0, predicted probabilities [0.1603, 0.8397], and slice membership [True, False].}
+\label{fig:discovered_slice_0}
+\end{figure}
+
+\noindent\textbf{Average Precision (AP)}
+
+In the implementation, AP is computed using the slice probability vector 
+$\texttt{slice\_prob}$, not binary predictions.
+
+\begin{verbatim}
+"average_precision": skmetrics.average_precision_score(
+    y_true=slc,
+    y_score=slice_prob
+)
+\end{verbatim}
+
+\noindent\textbf{Definition}
+
+Given a ground-truth binary indicator $S \in \{0, 1\}^N$ and predicted probabilities $\hat{S} \in [0, 1]^N$, we first sort the
+  $N$ samples by their predicted scores in descending order:
+  \[ \hat{S}{(1)} \ge \hat{S}{(2)} \ge \dots \ge \hat{S}{(n)} \ge \dots \ge \hat{S}{(N)} \]
+
+
+  The AP is then defined as:
+  \[ AP = \sum_{n=1}^{N} (R_n - R_{n-1}) P_n \]
+
+
+  where:
+  \begin{itemize}
+      \item $n$ is the rank index of the samples after sorting by probability.
+      \item $P_n$ and $R_n$ are the precision and recall calculated by setting the classification threshold to the $n$-th highest probability score, $T = \hat{S}_{(n)}$.
+      \item By convention, $R_0 = 0$.
+  \end{itemize}
+
+
+\subsection{Observations}
+\begin{itemize}
+    \item Their problem formulation is flexible.
+    \item $m$ is not necessarily equal to $k$
+\end{itemize}
