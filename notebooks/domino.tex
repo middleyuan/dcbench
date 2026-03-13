@@ -1,0 +1,44 @@
+\section{Problem Statement}
+
+We consider a dataset 
+\[
+\mathcal{D} = \{x_i, y_i, \hat{y}_i, z_i\}_{i=1}^n,
+\]
+where $x_i$ denotes the input, $y_i$ the ground-truth label, 
+$\hat{y}_i = f_\theta(x_i)$ the model prediction, and 
+$z_i$ a latent representation (e.g., CLIP or model embeddings).
+The dataset also contains hidden ground-truth slices
+\[
+\mathcal{S} = \{S_1, \dots, S_k\}, \qquad S_j \in \{0,1\}^n,
+\]
+where each $S_j$ is a binary membership indicator.
+
+\paragraph{Slice Discovery.}
+A slice discovery algorithm $\mathcal{A}$ outputs a set of predicted slices:
+\[
+\hat{\mathcal{S}} = \mathcal{A}(\mathcal{D})
+= \{\hat{S}_1, \dots, \hat{S}_m\}, \qquad \hat{S}_j \in [0,1]^n,
+\]
+where $\hat{S}_{j,i}$ represents the probability that instance $i$ belongs
+to slice $j$.
+
+\paragraph{Error Slice Definition.}
+Let $\ell(f_\theta(x), y)$ be a loss function.
+Define the population-level risk:
+\[
+R_{\text{pop}} = \mathbb{E}_{(X,Y)\sim P}[\ell(f_\theta(X),Y)],
+\]
+and the slice-conditional risk:
+\[
+R(\hat{S}_j)
+= \mathbb{E}_{(X,Y)\sim P(X,Y \mid \hat{S}_j = 1)}[\ell(f_\theta(X),Y)].
+\]
+A discovered slice $\hat{S}_j$ is an \emph{error slice} if
+\[
+R(\hat{S}_j)
+\;>\;
+R_{\text{pop}} + \epsilon,
+\]
+i.e., the model's risk on the slice exceeds the population risk by at least $\epsilon > 0$.
+
+\newpage

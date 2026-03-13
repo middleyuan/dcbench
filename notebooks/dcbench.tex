@@ -155,7 +155,7 @@ recall              & 0.44                  & 1.00 \\
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.4\textwidth]{discovered_slice_0.png}
+\includegraphics[width=0.4\textwidth]{figures/discovered_slice_0.png}
 \caption{Discovered Slice 0 (Size: 1260) for CelebA (\texttt{p\_72776}). Example instance (ID: 143706.jpg) has target 0, predicted probabilities [0.1603, 0.8397], and slice membership [True, False].}
 \label{fig:discovered_slice_0}
 \end{figure}
@@ -171,8 +171,6 @@ $\texttt{slice\_prob}$, not binary predictions.
     y_score=slice_prob
 )
 \end{verbatim}
-
-\noindent\textbf{Definition}
 
 Given a ground-truth binary indicator $S \in \{0, 1\}^N$ and predicted probabilities $\hat{S} \in [0, 1]^N$, we first sort the
   $N$ samples by their predicted scores in descending order:
