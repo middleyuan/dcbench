@@ -173,7 +173,11 @@ class Artifact(ABC):
         Returns:
             bool: True if artifact is downloaded, False otherwise.
         """
-        return os.path.exists(self.local_path)
+        if not os.path.exists(self.local_path):
+            return False
+        if self.isdir:
+            return os.path.exists(os.path.join(self.local_path, "meta.yaml"))
+        return True
 
     @property
     def is_uploaded(self) -> bool:
@@ -408,6 +412,9 @@ class VisionDatasetArtifact(DataPanelArtifact):
         return artifact
 
     def download(self, force: bool = False):
+        if self.is_downloaded and not force:
+            return False
+
         if self.id == "celeba":
             dp = mk.datasets.get(self.id, dataset_dir=config.celeba_dir)
         elif self.id == "imagenet":
@@ -421,6 +428,7 @@ class VisionDatasetArtifact(DataPanelArtifact):
         dp.remove_column("image_id")
         dp = dp[self.COLUMN_SUBSETS[self.id]]
         self.save(data=dp[self.COLUMN_SUBSETS[self.id]])
+        return True
 
 
 class ModelArtifact(Artifact):
