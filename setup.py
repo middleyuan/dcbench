@@ -12,8 +12,10 @@ from shutil import rmtree
 
 from setuptools import Command, find_packages, setup
 
+here = os.path.abspath(os.path.dirname(__file__))
+
 main_ns = {}
-ver_path = convert_path("dcbench/version.py")
+ver_path = os.path.join(here, "dcbench", "version.py")
 with open(ver_path) as ver_file:
     exec(ver_file.read(), main_ns)
 
